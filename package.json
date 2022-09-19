@@ -28,13 +28,11 @@
     "build": "react-scripts build",
     "server": "node ./server/app",
     "serve": "serve -s build",
-    "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
     "extends": [
-      "react-app",
-      "react-app/jest"
+      "react-app"
     ]
   },
   "browserslist": {
