@@ -1,0 +1,16 @@
+.table{
+    border: 1px solid #7081ea;
+    margin: 50px auto;
+}
+
+.tableRow:nth-of-type(odd) {
+    background-color: #eef2ff;
+}
+
+.info{
+    height: 160px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
