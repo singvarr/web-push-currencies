@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
 const webpush = require('web-push');
 const { exchangeRate } = require('./currencies');
 
@@ -11,6 +12,7 @@ webpush.setVapidDetails(
   process.env.PRIVATE_KEY
 );
 
+app.use(cors());
 app.use(express.json());
 
 const webPushSubscriptions = [];
