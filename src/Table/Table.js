@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -7,21 +7,27 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import styles from "./styles.module.css";
-import { useTable } from "./hook";
 
 export const CurrencyTable = () => {
-  const { loading, error, currency: rows } = useTable();
+  const [loading, setLoading] = useState(true);
+  const [currency, setCurrency] = useState([]);
 
-  if (error) {
-    return <div className={styles.info}>{error}</div>;
-  }
+  useEffect(() => {
+    fetch(`http://localhost:${process.env.REACT_APP_SERVER_PORT}`)
+      .then(response => response.json())
+      .then(res => {
+        setCurrency(res);
+      })
+      .catch(error => {
+        console.error("Error:", error);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
 
   return (
-    <TableContainer
-      component={Paper}
-      sx={{ width: "70%" }}
-      className={styles.table}
-    >
+    <TableContainer component={Paper} className={styles.table}>
       {loading ? (
         <div className={styles.info}>Loading...</div>
       ) : (
@@ -33,16 +39,16 @@ export const CurrencyTable = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {rows.map(row => (
+            {Object.entries(currency).map(row => (
               <TableRow
-                key={row.id}
+                key={row[0]}
                 sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                 className={styles.tableRow}
               >
                 <TableCell component="th" scope="row">
-                  {row.currency}
+                  {row[0]}
                 </TableCell>
-                <TableCell align="right">{row.amount}</TableCell>
+                <TableCell align="right">{row[1]}</TableCell>
               </TableRow>
             ))}
           </TableBody>
