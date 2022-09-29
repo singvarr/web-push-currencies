@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
 const webpush = require('web-push');
 const { exchangeRate } = require('./currencies');
 
@@ -11,6 +12,7 @@ webpush.setVapidDetails(
   process.env.PRIVATE_KEY
 );
 
+app.use(cors());
 app.use(express.json());
 
 const webPushSubscriptions = [];
@@ -36,4 +38,4 @@ app.post('/subscription', (req, res) => {
   res.sendStatus(201);
 });
 
-app.listen(process.env.SERVER_PORT, () => console.log('The app started'));
+app.listen(process.env.REACT_APP_SERVER_PORT, () => console.log('The app started'));
