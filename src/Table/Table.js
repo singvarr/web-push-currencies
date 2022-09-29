@@ -39,16 +39,12 @@ export const CurrencyTable = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {Object.entries(currency).map(row => (
-              <TableRow
-                key={row[0]}
-                sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                className={styles.tableRow}
-              >
+            {Object.entries(currency).map(([currencyName, exchangeRate]) => (
+              <TableRow key={currencyName} className={styles.tableRow}>
                 <TableCell component="th" scope="row">
-                  {row[0]}
+                  {currencyName}
                 </TableCell>
-                <TableCell align="right">{row[1]}</TableCell>
+                <TableCell align="right">{exchangeRate}</TableCell>
               </TableRow>
             ))}
           </TableBody>

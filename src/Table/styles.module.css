@@ -7,6 +7,10 @@
 .tableRow{
     cursor: pointer;
 }
+.tableRow:last-child td,
+.tableRow:last-child th {
+    border: 0;
+}
 
 .tableRow:nth-of-type(odd) {
     background-color: #eef2ff;
