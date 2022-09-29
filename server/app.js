@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const webpush = require('web-push');
+const cors = require('cors');
 const { exchangeRate } = require('./currencies');
 
 const app = express();
@@ -25,7 +26,7 @@ app.put('/:currency', (req, res) => {
 
   exchangeRate[currency] = value;
 
-  webPushSubscriptions.forEach((subscription) => {
+  webPushSubscriptions.forEach(({ subscription }) => {
     webpush.sendNotification(subscription, `Hello!!!!. New exchange rate is ${value}`);
   });
 
