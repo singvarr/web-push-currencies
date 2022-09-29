@@ -38,4 +38,4 @@ app.post('/subscription', (req, res) => {
   res.sendStatus(201);
 });
 
-app.listen(process.env.SERVER_PORT, () => console.log('The app started'));
+app.listen(process.env.REACT_APP_SERVER_PORT, () => console.log('The app started'));
