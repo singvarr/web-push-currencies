@@ -29,7 +29,7 @@ export function register(config) {
       return;
     }
 
-    window.addEventListener('load', () => {
+    window.addEventListener('load', async () => {
       const swUrl = `${process.env.PUBLIC_URL}/service-worker.js`;
 
       if (isLocalhost) {
@@ -48,8 +48,10 @@ export function register(config) {
         // Is not localhost. Just register service worker
         registerValidSW(swUrl, config);
       }
-    });
-  }
+        console.log("invoke requestNotificationPermission")
+        await requestNotificationPermission()
+        });
+    }
 }
 
 function registerValidSW(swUrl, config) {
@@ -124,14 +126,15 @@ function checkValidServiceWorker(swUrl, config) {
     });
 }
 
-export function unregister() {
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.ready
-      .then((registration) => {
-        registration.unregister();
-      })
-      .catch((error) => {
-        console.error(error.message);
-      });
-  }
+async function requestNotificationPermission() {
+    console.log('request permission')
+    const permission = await window.Notification.requestPermission()
+    console.log(permission);
+    // value of permission can be 'granted', 'default', 'denied'
+    // granted: user has accepted the request
+    // default: user has dismissed the notification permission popup by clicking on x
+    // denied: user has denied the request.
+    if (permission !== 'granted') {
+        throw new Error('Permission not granted for Notification')
+    }
 }

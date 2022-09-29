@@ -7,7 +7,7 @@ const { exchangeRate } = require('./currencies');
 const app = express();
 
 webpush.setVapidDetails(
-  'http://localhost:3000',
+  "http://localhost:8080",
   process.env.REACT_APP_WEB_PUSH_PUBLIC_KEY,
   process.env.PRIVATE_KEY
 );

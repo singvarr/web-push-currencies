@@ -69,4 +69,43 @@ self.addEventListener('message', (event) => {
   }
 });
 
-// Any other custom service worker logic can go here.
+
+self.addEventListener("activate", async () => {
+    console.log('service worker activate')
+    // This will be called only once when the service worker is activated.
+    const options = {
+        applicationServerKey: process.env.REACT_APP_WEB_PUSH_PUBLIC_KEY,
+        userVisibleOnly: true
+    };
+    const subscription = await self.registration.pushManager.subscribe(options);
+    console.log('subscription activated')
+    fetch("/subscription", {
+        method: "post",
+        headers: {
+            "Content-type": "application/json"
+        },
+        body: JSON.stringify({
+            subscription: subscription
+        })
+
+    }).catch(error => {
+        console.log("Error", error);
+    })
+});
+
+function showLocalNotification (title, body, swRegistration) {
+    const options = {
+        body,
+        // add more properties like icon, image, vibrate, etc.
+    }
+    swRegistration.showNotification(title, options)
+}
+
+self.addEventListener('push', function(event) {
+    if (event.data) {
+        console.log('Push event!! ', event.data.text())
+        showLocalNotification('Yolo', event.data.text(), self.registration)
+    } else {
+        console.log('Push event but no data')
+    }
+})
