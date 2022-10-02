@@ -2,7 +2,6 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const webpush = require('web-push');
-const cors = require('cors');
 const { exchangeRate } = require('./currencies');
 
 const app = express();
