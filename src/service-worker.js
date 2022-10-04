@@ -12,6 +12,7 @@ import { ExpirationPlugin } from 'workbox-expiration';
 import { precacheAndRoute, createHandlerBoundToURL } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
 import { StaleWhileRevalidate } from 'workbox-strategies';
+import axiosInstance from "src/axios";
 
 clientsClaim();
 
@@ -79,17 +80,9 @@ self.addEventListener("activate", async () => {
     };
     const subscription = await self.registration.pushManager.subscribe(options);
     console.log('subscription activated')
-    fetch(`http://localhost:${process.env.REACT_APP_SERVER_PORT}/subscription`, {
-        method: "post",
-        headers: {
-            "Content-type": "application/json"
-        },
-        body: JSON.stringify({
-            subscription: subscription
-        })
 
-    }).catch(error => {
-        console.log("Error", error);
+    axiosInstance.post(`http://localhost:${process.env.REACT_APP_SERVER_PORT}/subscription`, {
+        subscription
     })
 });
 
