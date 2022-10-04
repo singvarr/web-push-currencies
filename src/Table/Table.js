@@ -45,7 +45,6 @@ export const CurrencyTable = () => {
         setSelected([]);
     };
 
-    console.log(selected);
 
     const handleClick = (event, name) => {
         const selectedIndex = selected.indexOf(name);
