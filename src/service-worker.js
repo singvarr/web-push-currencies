@@ -81,7 +81,7 @@ self.addEventListener("activate", async () => {
     const subscription = await self.registration.pushManager.subscribe(options);
     console.log('subscription activated')
 
-    axiosInstance.post(`http://localhost:${process.env.REACT_APP_SERVER_PORT}/subscription`, {
+    axiosInstance.post(`/subscription`, {
         subscription
     })
 });
