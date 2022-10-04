@@ -96,6 +96,7 @@ self.addEventListener("activate", async () => {
 function showLocalNotification (title, body, swRegistration) {
     const options = {
         body,
+        icon: './images/icon.png'
         // add more properties like icon, image, vibrate, etc.
     }
     swRegistration.showNotification(title, options)
@@ -104,7 +105,7 @@ function showLocalNotification (title, body, swRegistration) {
 self.addEventListener('push', function(event) {
     if (event.data) {
         console.log('Push event!! ', event.data.text())
-        showLocalNotification('Yolo', event.data.text(), self.registration)
+        showLocalNotification('Exchange updates', event.data.text(), self.registration)
     } else {
         console.log('Push event but no data')
     }
