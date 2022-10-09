@@ -30,7 +30,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "server": "node ./server/app --inspect",
+    "server": "node ./server/app",
     "serve": "serve -s build -p 8080",
     "eject": "react-scripts eject"
   },
