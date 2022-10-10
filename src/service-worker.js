@@ -103,11 +103,6 @@ function showLocalNotification (title, body, swRegistration) {
     swRegistration.showNotification(title, options)
 }
 
-self.addEventListener('push', function(event) {
-    if (event.data) {
-        console.log('Push event!! ', event.data.text())
-        showLocalNotification('Exchange updates', event.data.text(), self.registration)
-    } else {
-        console.log('Push event but no data')
-    }
+self.addEventListener('push', function (event) {
+    showLocalNotification('Exchange updates', event.data.text(), self.registration)
 })

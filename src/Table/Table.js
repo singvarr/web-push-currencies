@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from "react";
+import {useEffect, useState} from "react";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -10,60 +10,53 @@ import Paper from "@mui/material/Paper";
 import styles from "./styles.module.css";
 
 export const CurrencyTable = () => {
+
+    const data = [
+        {
+            currency: 'usd',
+            value: 40.34,
+            isSelected: false
+        },
+        {
+            currency: 'eur',
+            value: 40.34,
+            isSelected: false
+        }]
+
     const [loading, setLoading] = useState(true);
-    const [currency, setCurrency] = useState([]);
+    const [currencies, setCurrencies] = useState([]);
+
 
     useEffect(() => {
         fetch(`http://localhost:${process.env.REACT_APP_SERVER_PORT}`)
             .then(response => response.json())
             .then(res => {
-                setCurrency(res);
-            })
-            .catch(error => {
-                console.error("Error:", error);
+                //todo replace when data will be ready
+                console.log(res);
+                setCurrencies(data);
             })
             .finally(() => {
                 setLoading(false);
             });
     }, []);
 
-    const rows = useMemo(() => Object.entries(currency), [currency])
 
-    const [selected, setSelected] = React.useState([]);
-
-    const isSelected = (name) => selected.indexOf(name) !== -1;
-
-    const numSelected = selected.length
-    const rowCount = rows.length
-
-    const handleSelectAllClick = (event) => {
-        if (event.target.checked) {
-            const newSelected = rows.map(([currencyName]) => currencyName);
-            setSelected(newSelected);
-            return;
-        }
-        setSelected([]);
+    const handleSelectAllClick = () => {
+        if (currencies.every(item => item.isSelected)) {
+            setCurrencies(currencies.map(item => {
+                return {...item, isSelected: false}
+            }))
+        } else setCurrencies(currencies.map(item => {
+            return {...item, isSelected: true}
+        }))
     };
 
-
-    const handleClick = (event, name) => {
-        const selectedIndex = selected.indexOf(name);
-        let newSelected = [];
-
-        if (selectedIndex === -1) {
-            newSelected = newSelected.concat(selected, name);
-        } else if (selectedIndex === 0) {
-            newSelected = newSelected.concat(selected.slice(1));
-        } else if (selectedIndex === selected.length - 1) {
-            newSelected = newSelected.concat(selected.slice(0, -1));
-        } else if (selectedIndex > 0) {
-            newSelected = newSelected.concat(
-                selected.slice(0, selectedIndex),
-                selected.slice(selectedIndex + 1),
-            );
-        }
-
-        setSelected(newSelected);
+    const handleClick = (event, currencyName) => {
+        setCurrencies(currencies.map(item => {
+            if (currencyName === item.currency) {
+                return {...item, isSelected: !item.isSelected}
+            } else return item
+        }))
     };
 
     return (
@@ -76,8 +69,7 @@ export const CurrencyTable = () => {
                         <TableRow>
                             <Checkbox
                                 color="primary"
-                                indeterminate={numSelected > 0 && numSelected < rowCount}
-                                checked={rowCount > 0 && numSelected === rowCount}
+                                checked={currencies.every(item => item.isSelected)}
                                 onChange={handleSelectAllClick}
                             />
                             <TableCell>Currency</TableCell>
@@ -85,20 +77,19 @@ export const CurrencyTable = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {rows.map(([currencyName, exchangeRate]) => {
-                            const isItemSelected = isSelected(currencyName);
-                            return <TableRow key={currencyName} className={styles.tableRow}>
+                        {currencies.map(({currency, value, isSelected}) => (
+                            <TableRow key={currency} className={styles.tableRow}>
                                 <Checkbox
                                     color="primary"
-                                    checked={isItemSelected}
-                                    onChange={event => handleClick(event, currencyName)}
+                                    checked={isSelected}
+                                    onChange={event => handleClick(event, currency)}
                                 />
                                 <TableCell component="th" scope="row">
-                                    {currencyName}
+                                    {currency}
                                 </TableCell>
-                                <TableCell align="right">{exchangeRate}</TableCell>
+                                <TableCell align="right">{value}</TableCell>
                             </TableRow>
-                        })}
+                        ))}
                     </TableBody>
                 </Table>
             )}
