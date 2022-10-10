@@ -2,7 +2,7 @@
 
 ## Workflow:
 
-![image](https://user-images.githubusercontent.com/56842420/193760222-5e43149b-b179-472c-ac7a-f1b8b3fd193b.png)
+![workflow](https://user-images.githubusercontent.com/56842420/194937213-b29909d2-e73b-447a-b3d4-f4f00e8011b5.png)
 
 notes:
 Value of permission can be 'granted', 'default', 'denied':
