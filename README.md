@@ -6,9 +6,12 @@
 
 notes:
 Value of permission can be 'granted', 'default', 'denied':
+
 - granted: user has accepted the request
 - default: user has dismissed the notification permission popup by clicking on x
 - denied: user has denied the request.
+
+There is no need to save the subscription on the server side if we have a general subscription. In our case we wan to manage the subscriptions so we need to save subscriptions on the server side.
 
 ## Web API for push notifications
 
