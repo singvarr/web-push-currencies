@@ -29,7 +29,7 @@ export function register(config) {
       return;
     }
 
-    window.addEventListener('load', () => {
+    window.addEventListener('load', async () => {
       const swUrl = `${process.env.PUBLIC_URL}/service-worker.js`;
 
       if (isLocalhost) {
@@ -48,8 +48,10 @@ export function register(config) {
         // Is not localhost. Just register service worker
         registerValidSW(swUrl, config);
       }
-    });
-  }
+        console.log("invoke requestNotificationPermission")
+        await requestNotificationPermission()
+        });
+    }
 }
 
 function registerValidSW(swUrl, config) {
@@ -124,14 +126,9 @@ function checkValidServiceWorker(swUrl, config) {
     });
 }
 
-export function unregister() {
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.ready
-      .then((registration) => {
-        registration.unregister();
-      })
-      .catch((error) => {
-        console.error(error.message);
-      });
-  }
+async function requestNotificationPermission() {
+    const permission = await window.Notification.requestPermission()
+    if (permission !== 'granted') {
+        throw new Error('Permission not granted for Notification')
+    }
 }

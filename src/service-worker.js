@@ -69,4 +69,36 @@ self.addEventListener('message', (event) => {
   }
 });
 
-// Any other custom service worker logic can go here.
+
+self.addEventListener("activate", async () => {
+    console.log('service worker activate')
+    // This will be called only once when the service worker is activated.
+    const options = {
+        applicationServerKey: process.env.REACT_APP_WEB_PUSH_PUBLIC_KEY,
+        userVisibleOnly: true
+    };
+    const subscription = await self.registration.pushManager.subscribe(options);
+    console.log('subscription activated')
+
+    fetch(`http://localhost:${process.env.REACT_APP_SERVER_PORT}/subscription`, {
+        method: "post",
+        headers: { "Content-type": "application/json" },
+        body: JSON.stringify({ subscription })
+
+    }).catch(error => {
+        console.log("Error", error);
+    })
+});
+
+function showLocalNotification (title, body, swRegistration) {
+    const options = {
+        body,
+        icon: './images/icon.png'
+        // add more properties like icon, image, vibrate, etc.
+    }
+    swRegistration.showNotification(title, options)
+}
+
+self.addEventListener('push', function (event) {
+    showLocalNotification('Exchange updates', event.data.text(), self.registration)
+})

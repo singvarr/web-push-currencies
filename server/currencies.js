@@ -3,12 +3,6 @@ const currencies = {
   EUR: "eur"
 };
 
-/* todo need to change to the obj type:
-  Array of {
-    id: string;
-    currency: string;
-    amount: number
-   } */
 const exchangeRate = {
   [currencies.EUR]: 37.09,
   [currencies.USD]: 36.9
