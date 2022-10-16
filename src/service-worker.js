@@ -82,12 +82,8 @@ self.addEventListener("activate", async () => {
 
     fetch(`http://localhost:${process.env.REACT_APP_SERVER_PORT}/subscription`, {
         method: "post",
-        headers: {
-            "Content-type": "application/json"
-        },
-        body: JSON.stringify({
-            subscription: subscription
-        })
+        headers: { "Content-type": "application/json" },
+        body: JSON.stringify({ subscription })
 
     }).catch(error => {
         console.log("Error", error);
