@@ -12,20 +12,32 @@ import styles from './styles.module.css';
 const CurrencyTable = () => {
   const [loading, setLoading] = useState(true);
   const [currencies, setCurrencies] = useState([]);
-  const [updatedCurrencies, setUpdatedCurrencies] = useState(['usd']);
+  const [updatedCurrencies, setUpdatedCurrencies] = useState([]);
 
+  useEffect(()=>{
+    updatedCurrencies.length > 0 && setTimeout(()=>{
+      setUpdatedCurrencies([])
+    }, 3000)
+  },[updatedCurrencies])
 
-  //
-  setTimeout(() => {
-    setUpdatedCurrencies([])
-  }, 1000)
 
   useEffect(() => {
     const broadcast = new BroadcastChannel('sw-channel')
 
     broadcast.onmessage = (event) => {
-      console.log(event.data)
+      const [currency, value] = event.data.split(':')
+      setUpdatedCurrencies([currency])
+
+      setCurrencies(prev => prev.map(item => {
+        if (item.currency === currency) {
+          return {
+            ...item, value: value.trim()
+          }
+        }
+        return item
+      }))
     }
+
   }, [])
 
 
@@ -54,10 +66,6 @@ const CurrencyTable = () => {
     );
   };
 
-  const isChanged = (currency) => {
-   return updatedCurrencies.includes(currency)
-  }
-
 
   return (
     <TableContainer component={Paper} className={styles.table}>
@@ -74,7 +82,7 @@ const CurrencyTable = () => {
           <TableBody>
             {currencies.map(({ currency, value, isSelected }) => (
               <TableRow key={currency}
-                        className={`${styles.tableRow} ${isChanged(currency) ? styles.highlightRow : ''}`}>
+                        className={`${styles.tableRow} ${updatedCurrencies.includes(currency) ? styles.highlightRow : ''}`}>
                 <TableCell>
                   <Checkbox
                     color="primary"

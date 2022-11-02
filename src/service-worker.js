@@ -95,7 +95,7 @@ function showLocalNotification(title, body, swRegistration) {
         body,
         icon: '../images/icon.png',
         actions: [
-            {action: 'view ', title: 'View '}
+            {action: 'view', title: 'View'}
         ],
         tag: 'swc'
         // add more     properties like icon, image, vibrate, etc.
@@ -103,23 +103,29 @@ function showLocalNotification(title, body, swRegistration) {
     swRegistration.showNotification(title, options)
 }
 
+let broadcastMessage
+
 self.addEventListener('notificationclick', function (event) {
     event.notification.close();
 
-    if (event.action === 'like') {
-        alert('view action')
+    if (event.action === 'view') {
         openTab(event);
     }
 
 }, false);
 
 self.addEventListener('push', function (event) {
-    showLocalNotification('Exchange updates', event.data.text(), self.registration)
+    broadcastMessage = event.data.text()
+    showLocalNotification('Exchange updates', broadcastMessage, self.registration)
 })
 
+const bc = new BroadcastChannel("sw-channel");
 
 function openTab(event) {
-    const url = 'https://localhost:8080';
+
+    bc.postMessage(broadcastMessage);
+
+    const url = 'http://localhost:8080/';
     event.preventDefault();
 
     event.waitUntil(
@@ -128,7 +134,7 @@ function openTab(event) {
             for (let i = 0; i < windowClients.length; i++) {
                 let client = windowClients[i];
                 // If so, just focus it.
-                if (client.url === url && 'focus' in client) {
+                if (client.url === url) {
                     return client.focus();
                 }
             }
