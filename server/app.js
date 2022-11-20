@@ -15,7 +15,7 @@ webpush.setVapidDetails(
 app.use(cors());
 app.use(express.json());
 
-const webPushSubscriptions = [];
+const webPushSubscriptions = {};
 
 app.get('/', (_, res) => res.json(exchangeRate));
 
@@ -33,7 +33,17 @@ app.put('/:currency', (req, res) => {
 });
 
 app.post('/subscription', (req, res) => {
-  webPushSubscriptions.push(req.body);
+  const { subscription, currencies } = req.body;
+  const { endpoint } = subscription;
+
+  if (!subscription.length) {
+    delete webPushSubscriptions[endpoint]
+  } else {
+    webPushSubscriptions[endpoint] = {
+      subscription,
+      currencies,
+    };
+  }
 
   res.sendStatus(201);
 });
