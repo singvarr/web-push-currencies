@@ -90,15 +90,58 @@ self.addEventListener("activate", async () => {
     })
 });
 
-function showLocalNotification (title, body, swRegistration) {
+function showLocalNotification(title, body, swRegistration) {
     const options = {
         body,
-        icon: './images/icon.png'
-        // add more properties like icon, image, vibrate, etc.
+        icon: '../images/icon.png',
+        actions: [
+            {action: 'view', title: 'View'}
+        ],
+        tag: 'swc'
+        // add more     properties like icon, image, vibrate, etc.
     }
     swRegistration.showNotification(title, options)
 }
 
+let broadcastMessage
+
+self.addEventListener('notificationclick', function (event) {
+    event.notification.close();
+
+    if (event.action === 'view') {
+        openTab(event);
+    }
+
+}, false);
+
 self.addEventListener('push', function (event) {
-    showLocalNotification('Exchange updates', event.data.text(), self.registration)
+    broadcastMessage = event.data.text()
+    showLocalNotification('Exchange updates', broadcastMessage, self.registration)
 })
+
+const bc = new BroadcastChannel("sw-channel");
+
+function openTab(event) {
+
+    bc.postMessage(broadcastMessage);
+
+    const url = 'http://localhost:8080/';
+    event.preventDefault();
+
+    event.waitUntil(
+        self.clients.matchAll({type: 'window'}).then(windowClients => {
+            // Check if there is already a window/tab open with the target URL
+            for (let i = 0; i < windowClients.length; i++) {
+                let client = windowClients[i];
+                // If so, just focus it.
+                if (client.url === url) {
+                    return client.focus();
+                }
+            }
+            // If not, then open the target URL in a new window/tab.
+            if (self.clients.openWindow) {
+                return self.clients.openWindow(url);
+            }
+        })
+    );
+}

@@ -26,7 +26,7 @@ app.put('/:currency', (req, res) => {
   exchangeRate[currency] = value;
 
   webPushSubscriptions.forEach(({ subscription }) => {
-    webpush.sendNotification(subscription, `Hello!!!!. New exchange rate is ${value}`);
+    webpush.sendNotification(subscription, `${currency}: ${value}`);
   });
 
   res.json({ value });

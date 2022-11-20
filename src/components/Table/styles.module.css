@@ -6,6 +6,7 @@
 
 .tableRow{
     cursor: pointer;
+    transition: all 0.5s ease-in-out;
 }
 .tableRow:last-child td,
 .tableRow:last-child th {
@@ -26,4 +27,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.highlightRow{
+    background-color: rgba(112, 129, 234, 0.44);
 }
