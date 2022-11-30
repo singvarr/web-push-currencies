@@ -69,8 +69,12 @@ self.addEventListener('message', (event) => {
   }
 });
 
+const bc = new BroadcastChannel("sw-channel");
+const bcSubcsr = new BroadcastChannel("bcSubcsr");
 
-self.addEventListener("activate", async () => {
+
+// currency: string[]
+const currencySubscription = async (currencies = []) => {
     console.log('service worker activate')
     // This will be called only once when the service worker is activated.
     const options = {
@@ -82,12 +86,22 @@ self.addEventListener("activate", async () => {
 
     fetch(`http://localhost:${process.env.REACT_APP_SERVER_PORT}/subscription`, {
         method: "post",
-        headers: { "Content-type": "application/json" },
-        body: JSON.stringify({ subscription })
+        headers: {"Content-type": "application/json"},
+        body: JSON.stringify({subscription, currencies})
 
     }).catch(error => {
         console.log("Error", error);
     })
+}
+
+
+bcSubcsr.onmessage = (event) => {
+    console.log(event);
+    currencySubscription(event.data)
+}
+
+self.addEventListener("activate", async (event) => {
+    currencySubscription(event.data)
 });
 
 function showLocalNotification(title, body, swRegistration) {
@@ -119,7 +133,6 @@ self.addEventListener('push', function (event) {
     showLocalNotification('Exchange updates', broadcastMessage, self.registration)
 })
 
-const bc = new BroadcastChannel("sw-channel");
 
 function openTab(event) {
 

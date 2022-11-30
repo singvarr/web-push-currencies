@@ -25,9 +25,11 @@ app.put('/:currency', (req, res) => {
 
   exchangeRate[currency] = value;
 
-  webPushSubscriptions.forEach(({ subscription }) => {
-    webpush.sendNotification(subscription, `${currency}: ${value}`);
-  });
+  if (Object.keys(webPushSubscriptions).length !== 0) {
+      webPushSubscriptions.forEach(({subscription}) => {
+          webpush.sendNotification(subscription, `${currency}: ${value}`);
+      });
+  }
 
   res.json({ value });
 });

@@ -8,6 +8,7 @@ import TableRow from '@mui/material/TableRow';
 import Checkbox from '@mui/material/Checkbox';
 import Paper from '@mui/material/Paper';
 import styles from './styles.module.css';
+import {requestNotificationPermission} from "../../requestNotificationPermission";
 
 const CurrencyTable = () => {
   const [loading, setLoading] = useState(true);
@@ -21,8 +22,10 @@ const CurrencyTable = () => {
   },[updatedCurrencies])
 
 
-  useEffect(() => {
     const broadcast = new BroadcastChannel('sw-channel')
+    const bcSubcsr = new BroadcastChannel("bcSubcsr");
+
+useEffect(() => {
 
     broadcast.onmessage = (event) => {
       const [currency, value] = event.data.split(':')
@@ -58,14 +61,21 @@ const CurrencyTable = () => {
       });
   }, []);
 
-  const handleSubscribeToCurrencyUpdate = (currencyName) => {
-    setCurrencies(
-      currencies.map((item) => (
-        currencyName === item.currency ? { ...item, isSelected: !item.isSelected } : item
-      )),
-    );
+  const handleSubscribeToCurrencyUpdate = async (currencyName) => {
+     const perm = await requestNotificationPermission()
+      console.log(perm);
+      setCurrencies(
+          currencies.map((item) => (
+              currencyName === item.currency ? {...item, isSelected: !item.isSelected} : item
+          )),
+      );
   };
 
+
+    useEffect(() => {
+        const selected = currencies.filter(item => item.isSelected).map(cur => cur.currency)
+        bcSubcsr.postMessage(selected);
+    }, [currencies])
 
   return (
     <TableContainer component={Paper} className={styles.table}>

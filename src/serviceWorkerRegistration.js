@@ -48,8 +48,6 @@ export function register(config) {
         // Is not localhost. Just register service worker
         registerValidSW(swUrl, config);
       }
-        console.log("invoke requestNotificationPermission")
-        await requestNotificationPermission()
         });
     }
 }
@@ -126,9 +124,4 @@ function checkValidServiceWorker(swUrl, config) {
     });
 }
 
-async function requestNotificationPermission() {
-    const permission = await window.Notification.requestPermission()
-    if (permission !== 'granted') {
-        throw new Error('Permission not granted for Notification')
-    }
-}
+
