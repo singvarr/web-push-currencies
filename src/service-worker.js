@@ -71,6 +71,7 @@ self.addEventListener('message', (event) => {
 
 const bc = new BroadcastChannel("sw-channel");
 const bcSubcsr = new BroadcastChannel("bcSubcsr");
+const initialSubscriptionsBc = new BroadcastChannel("initialSubscriptionsBc");
 
 
 // currency: string[]
@@ -92,26 +93,31 @@ const currencySubscription = async (currencies = []) => {
     }).catch(error => {
         console.log("Error", error);
     })
+
+    fetch(`http://localhost:${process.env.REACT_APP_SERVER_PORT}/subscription?subscriptionUrl=YOUR_SUBSCRIPTION_ENDPOINT`, )
+        .then((response) => response.json())
+        .then((data) => {
+            console.log(data); // todo -> receive null
+            initialSubscriptionsBc.postMessage(['usd'])
+        }).catch(error => {
+        console.log("Error", error);
+    })
 }
 
 
 bcSubcsr.onmessage = (event) => {
-    console.log(event);
     currencySubscription(event.data)
 }
 
-self.addEventListener("activate", async (event) => {
-    currencySubscription(event.data)
-});
 
-function showLocalNotification(title, body, swRegistration) {
+function showLocalNotification(title, body, swRegistration, tag) {
     const options = {
         body,
         icon: '../images/icon.png',
         actions: [
             {action: 'view', title: 'View'}
         ],
-        tag: 'swc'
+        tag
         // add more     properties like icon, image, vibrate, etc.
     }
     swRegistration.showNotification(title, options)
@@ -130,7 +136,9 @@ self.addEventListener('notificationclick', function (event) {
 
 self.addEventListener('push', function (event) {
     broadcastMessage = event.data.text()
-    showLocalNotification('Exchange updates', broadcastMessage, self.registration)
+
+    const [tag] = broadcastMessage.split(':')
+    showLocalNotification('Exchange updates', broadcastMessage, self.registration, tag)
 })
 
 
