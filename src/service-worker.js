@@ -73,8 +73,6 @@ const bc = new BroadcastChannel("sw-channel");
 const bcSubcsr = new BroadcastChannel("bcSubcsr");
 const initialSubscriptionsBc = new BroadcastChannel("initialSubscriptionsBc");
 
-
-// currency: string[]
 const currencySubscription = async (currencies = []) => {
     console.log('service worker activate')
     // This will be called only once when the service worker is activated.
@@ -94,14 +92,19 @@ const currencySubscription = async (currencies = []) => {
         console.log("Error", error);
     })
 
-    fetch(`http://localhost:${process.env.REACT_APP_SERVER_PORT}/subscription?subscriptionUrl=YOUR_SUBSCRIPTION_ENDPOINT`, )
-        .then((response) => response.json())
-        .then((data) => {
-            console.log(data); // todo -> receive null
-            initialSubscriptionsBc.postMessage(['usd'])
-        }).catch(error => {
-        console.log("Error", error);
+    const subscriptionUrl = await self.registration.pushManager.getSubscription().then((e) => {
+        return e.endpoint
     })
+
+    const subscriptions = await fetch(`http://localhost:${process.env.REACT_APP_SERVER_PORT}/subscription?subscriptionUrl=${subscriptionUrl}`)
+        .then((response) => {
+            return response.json()
+        })
+        .catch(error => {
+            console.log("Error", error);
+        })
+
+    initialSubscriptionsBc.postMessage(subscriptions?.currencies || [])
 }
 
 
