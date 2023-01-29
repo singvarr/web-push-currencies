@@ -87,7 +87,6 @@ const currencySubscription = async (currencies = []) => {
         method: "post",
         headers: {"Content-type": "application/json"},
         body: JSON.stringify({subscription, currencies})
-
     }).catch(error => {
         console.log("Error", error);
     })
@@ -144,6 +143,24 @@ self.addEventListener('push', function (event) {
     showLocalNotification('Exchange updates', broadcastMessage, self.registration, tag)
 })
 
+
+self.addEventListener('activate', (e) => {
+    e.waitUntil(
+        async () => {
+            const subscription = await self.registration.pushManager.getSubscription()
+            console.log(subscription);
+            const { endpoint: subscriptionUrl } = subscription;
+
+            const response = await fetch(`http://localhost:${process.env.REACT_APP_SERVER_PORT}/subscription?subscriptionUrl=${subscriptionUrl}`);
+            const subscriptionConfig = await response.json();
+
+            if (subscriptionConfig) {
+                const { currencies: subscribedCurrencies } = subscriptionConfig;
+                initialSubscriptionsBc.postMessage(subscribedCurrencies);
+            }
+        }
+    )
+})
 
 function openTab(event) {
 
