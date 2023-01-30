@@ -81,8 +81,10 @@ const currencySubscription = async (currencies = []) => {
         userVisibleOnly: true
     };
     const subscription = await self.registration.pushManager.subscribe(options);
+    // TODO: send subscription via broadcast channel
     console.log('subscription activated')
 
+    // TODO: move me to main thread
     fetch(`http://localhost:${process.env.REACT_APP_SERVER_PORT}/subscription`, {
         method: "post",
         headers: {"Content-type": "application/json"},
@@ -143,7 +145,7 @@ self.addEventListener('push', function (event) {
     showLocalNotification('Exchange updates', broadcastMessage, self.registration, tag)
 })
 
-
+// TODO: fetch from client
 self.addEventListener('activate', (e) => {
     e.waitUntil(
         async () => {
