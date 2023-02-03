@@ -43,7 +43,7 @@ const CurrencyTable = () => {
     const getSubscribedCurrencies = async () => {
         const subscriptionUrl = getSubscriptionUrl().endpoint
         console.log(subscriptionUrl);
-        const response = await fetch(`http://localhost:${process.env.REACT_APP_SERVER_PORT}/subscription?subscriptionUrl=${subscriptionUrl}`);
+        const response = await fetch(`http://localhost:${process.env.REACT_APP_SERVER_PORT}/subscription?subscriptionUrl=${subscription?.endpoint}`);
         const subscriptionConfig = await response.json();
 
         if (subscriptionConfig) {
@@ -69,7 +69,10 @@ const CurrencyTable = () => {
             });
     }
 
-    useEffect(() => {
+    useEffect(async  () => {
+
+        const existingSubs = await getSubscriptionUrl()
+        setSubscription(existingSubs)
 
         checkNotificationPermission(getSubscribedCurrencies)
 
@@ -97,7 +100,7 @@ const CurrencyTable = () => {
         fetch(`http://localhost:${process.env.REACT_APP_SERVER_PORT}/subscription`, {
             method: "post",
             headers: {"Content-type": "application/json"},
-            body: JSON.stringify({subscription: initSubscription || subscription, selected})
+            body: JSON.stringify({subscription: initSubscription || subscription, currencies: selected})
         }).catch(error => {
             console.log("Error", error);
         })
@@ -126,10 +129,10 @@ const CurrencyTable = () => {
             if (type === 'initial-subscription') {
                 console.log(payload.subscription);
                 setSubscription(initSubscription)
+                updateSubscriptionAPIRequest(initSubscription)
             }
         }
 
-        updateSubscriptionAPIRequest(initSubscription)
     }
 
 
