@@ -70,48 +70,7 @@ self.addEventListener('message', (event) => {
 });
 
 const bc = new BroadcastChannel("sw-channel");
-const bcSubcsr = new BroadcastChannel("bcSubcsr");
-const initialSubscriptionsBc = new BroadcastChannel("initialSubscriptionsBc");
-
-const currencySubscription = async (currencies = []) => {
-    console.log('service worker activate')
-    // This will be called only once when the service worker is activated.
-    const options = {
-        applicationServerKey: process.env.REACT_APP_WEB_PUSH_PUBLIC_KEY,
-        userVisibleOnly: true
-    };
-    const subscription = await self.registration.pushManager.subscribe(options);
-    // TODO: send subscription via broadcast channel
-    console.log('subscription activated')
-
-    // TODO: move me to main thread
-    fetch(`http://localhost:${process.env.REACT_APP_SERVER_PORT}/subscription`, {
-        method: "post",
-        headers: {"Content-type": "application/json"},
-        body: JSON.stringify({subscription, currencies})
-    }).catch(error => {
-        console.log("Error", error);
-    })
-
-    const subscriptionUrl = await self.registration.pushManager.getSubscription().then((e) => {
-        return e.endpoint
-    })
-
-    const subscriptions = await fetch(`http://localhost:${process.env.REACT_APP_SERVER_PORT}/subscription?subscriptionUrl=${subscriptionUrl}`)
-        .then((response) => {
-            return response.json()
-        })
-        .catch(error => {
-            console.log("Error", error);
-        })
-
-    initialSubscriptionsBc.postMessage(subscriptions?.currencies || [])
-}
-
-
-bcSubcsr.onmessage = (event) => {
-    currencySubscription(event.data)
-}
+const broadcastChannel = new BroadcastChannel("BroadcastChannel");
 
 
 function showLocalNotification(title, body, swRegistration, tag) {
@@ -122,7 +81,6 @@ function showLocalNotification(title, body, swRegistration, tag) {
             {action: 'view', title: 'View'}
         ],
         tag
-        // add more     properties like icon, image, vibrate, etc.
     }
     swRegistration.showNotification(title, options)
 }
@@ -145,24 +103,30 @@ self.addEventListener('push', function (event) {
     showLocalNotification('Exchange updates', broadcastMessage, self.registration, tag)
 })
 
-// TODO: fetch from client
-self.addEventListener('activate', (e) => {
-    e.waitUntil(
-        async () => {
-            const subscription = await self.registration.pushManager.getSubscription()
-            console.log(subscription);
-            const { endpoint: subscriptionUrl } = subscription;
 
-            const response = await fetch(`http://localhost:${process.env.REACT_APP_SERVER_PORT}/subscription?subscriptionUrl=${subscriptionUrl}`);
-            const subscriptionConfig = await response.json();
-
-            if (subscriptionConfig) {
-                const { currencies: subscribedCurrencies } = subscriptionConfig;
-                initialSubscriptionsBc.postMessage(subscribedCurrencies);
-            }
-        }
-    )
+self.addEventListener('activate', async (e) => {
+    console.log('service worker activate')
 })
+
+const createSubscription = async () => {
+
+    const options = {
+        applicationServerKey: process.env.REACT_APP_WEB_PUSH_PUBLIC_KEY,
+        userVisibleOnly: true
+    };
+    const initialSubscription = await self.registration.pushManager.subscribe(options);
+    console.log('initial - subscription', initialSubscription);
+    broadcastChannel.postMessage({type: 'initial-subscription', payload: {subscription: JSON.stringify(initialSubscription)}})
+}
+
+broadcastChannel.onmessage = event => {
+    const {type} = event.data;
+    console.log('permission-granted');
+    if (type === 'permission-granted') {
+        createSubscription()
+    }
+}
+
 
 function openTab(event) {
 
