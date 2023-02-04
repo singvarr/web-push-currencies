@@ -39,11 +39,8 @@ const CurrencyTable = () => {
         }, 2000)
     }, [updatedCurrencies])
 
-
-    const getSubscribedCurrencies = async () => {
-        const subscriptionUrl = getSubscriptionUrl().endpoint
-        console.log(subscriptionUrl);
-        const response = await fetch(`http://localhost:${process.env.REACT_APP_SERVER_PORT}/subscription?subscriptionUrl=${subscription?.endpoint}`);
+    const getSubscribedCurrencies = async (subscriptionUrl) => {
+        const response = await fetch(`http://localhost:${process.env.REACT_APP_SERVER_PORT}/subscription?subscriptionUrl=${subscriptionUrl}`);
         const subscriptionConfig = await response.json();
 
         if (subscriptionConfig) {
@@ -52,6 +49,21 @@ const CurrencyTable = () => {
         }
     }
 
+    useEffect(() => {
+        const cur = currencies.map(cur => {
+            if (subscribedCurrencies?.includes(cur.currency)) {
+                return {
+                    ...cur,
+                    isSelected: true
+                }
+            }
+            return cur
+        })
+        setCurrencies(cur)
+
+        setLoading(false);
+    }, [subscribedCurrencies])
+
     const getCurrenciesData = () => {
         fetch(`http://localhost:${process.env.REACT_APP_SERVER_PORT}`)
             .then((response) => response.json())
@@ -59,24 +71,25 @@ const CurrencyTable = () => {
                 const currenciesList = Object.entries(data).map(([name, value]) => ({
                     currency: name,
                     value,
-                    isSelected: subscribedCurrencies?.includes(name),
+                    isSelected: false,
                 }))
                 setCurrencies(currenciesList)
 
             })
-            .finally(() => {
-                setLoading(false);
-            });
     }
 
-    useEffect(async  () => {
-
-        const existingSubs = await getSubscriptionUrl()
-        setSubscription(existingSubs)
-
-        checkNotificationPermission(getSubscribedCurrencies)
+    useEffect(() => {
 
         getCurrenciesData()
+
+        const getSubscrCurrencies = async () => {
+
+            const existingSubs = await getSubscriptionUrl()
+            setSubscription(existingSubs)
+            getSubscribedCurrencies(existingSubs.endpoint)
+        }
+
+        checkNotificationPermission(getSubscrCurrencies)
 
         broadcast.onmessage = (event) => {
             const [currency, value] = event.data.split(':')
@@ -94,26 +107,25 @@ const CurrencyTable = () => {
     }, []);
 
 
-    const updateSubscriptionAPIRequest = (initSubscription) => {
-        const selected = currencies.filter(item => item.isSelected).map(cur => cur.currency)
-
+    const updateSubscriptionAPIRequest = (subscription, currencies) => {
         fetch(`http://localhost:${process.env.REACT_APP_SERVER_PORT}/subscription`, {
             method: "post",
             headers: {"Content-type": "application/json"},
-            body: JSON.stringify({subscription: initSubscription || subscription, currencies: selected})
+            body: JSON.stringify({subscription, currencies})
         }).catch(error => {
             console.log("Error", error);
         })
     }
 
     const handleCheckbox = (currencyName) => {
-        setCurrencies(
-            currencies.map((item) => (
-                currencyName === item.currency ? {...item, isSelected: !item.isSelected} : item
-            )),
-        );
+        const updatedCurrencies = currencies.map((item) => (
+            currencyName === item.currency ? {...item, isSelected: !item.isSelected} : item
+        ))
 
-        updateSubscriptionAPIRequest()
+        setCurrencies(updatedCurrencies);
+
+        const selected = updatedCurrencies.filter(item => item.isSelected).map(cur => cur.currency)
+        updateSubscriptionAPIRequest(subscription, selected)
     }
 
     const handleFirstGrante = (currencyName) => {
@@ -125,11 +137,10 @@ const CurrencyTable = () => {
         broadcastChannel.onmessage = event => {
             const {type, payload} = event.data;
 
-            initSubscription = JSON.parse(payload.subscription)
             if (type === 'initial-subscription') {
-                console.log(payload.subscription);
+                initSubscription = JSON.parse(payload.subscription)
                 setSubscription(initSubscription)
-                updateSubscriptionAPIRequest(initSubscription)
+                updateSubscriptionAPIRequest(JSON.parse(payload.subscription), [currencyName])
             }
         }
 
@@ -167,8 +178,6 @@ const CurrencyTable = () => {
                                             color="primary"
                                             checked={isSelected}
                                             onChange={() => {
-                                                debugger
-                                                console.log("click")
                                                 handleSubscribeToCurrencyUpdate(currency)
                                             }}
                                         />
