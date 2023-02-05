@@ -12,7 +12,6 @@ import {
     checkNotificationPermission,
 } from "./utils";
 
-const broadcast = new BroadcastChannel('sw-channel')
 const broadcastChannel = new BroadcastChannel("BroadcastChannel");
 
 
@@ -39,9 +38,8 @@ const CurrencyTable = () => {
         }, 2000)
     }, [updatedCurrencies])
 
-    const getSubscribedCurrencies = async (subscriptionUrl) => {
-        const response = await fetch(`http://localhost:${process.env.REACT_APP_SERVER_PORT}/subscription?subscriptionUrl=${subscriptionUrl}`);
-        const subscriptionConfig = await response.json();
+    const getSubscribedCurrenciesAPIRequest = async (subscriptionUrl) => {
+        const subscriptionConfig = await fetch(`http://localhost:${process.env.REACT_APP_SERVER_PORT}/subscription?subscriptionUrl=${subscriptionUrl}`).then(res => res.json());
 
         if (subscriptionConfig) {
             const {currencies: subscribedCurrencies} = subscriptionConfig;
@@ -82,27 +80,32 @@ const CurrencyTable = () => {
 
         getCurrenciesData()
 
-        const getSubscrCurrencies = async () => {
+        const getSubscribedCurrencies = async () => {
 
             const existingSubs = await getSubscriptionUrl()
             setSubscription(existingSubs)
-            getSubscribedCurrencies(existingSubs.endpoint)
+            getSubscribedCurrenciesAPIRequest(existingSubs.endpoint)
         }
 
-        checkNotificationPermission(getSubscrCurrencies)
+        checkNotificationPermission(getSubscribedCurrencies)
 
-        broadcast.onmessage = (event) => {
-            const [currency, value] = event.data.split(':')
-            setUpdatedCurrencies([currency])
+        broadcastChannel.onmessage = (event) => {
+            const {type, payload} = event.data;
 
-            setCurrencies(prev => prev.map(item => {
-                if (item.currency === currency) {
-                    return {
-                        ...item, value: value.trim()
+            if (type === 'get-push-message') {
+
+                const [currency, value] = payload.split(':')
+                setUpdatedCurrencies([currency])
+
+                setCurrencies(prev => prev.map(item => {
+                    if (item.currency === currency) {
+                        return {
+                            ...item, value: value.trim()
+                        }
                     }
-                }
-                return item
-            }))
+                    return item
+                }))
+            }
         }
     }, []);
 
@@ -140,7 +143,7 @@ const CurrencyTable = () => {
             if (type === 'initial-subscription') {
                 initSubscription = JSON.parse(payload.subscription)
                 setSubscription(initSubscription)
-                updateSubscriptionAPIRequest(JSON.parse(payload.subscription), [currencyName])
+                updateSubscriptionAPIRequest(initSubscription, [currencyName])
             }
         }
 

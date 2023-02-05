@@ -69,7 +69,6 @@ self.addEventListener('message', (event) => {
   }
 });
 
-const bc = new BroadcastChannel("sw-channel");
 const broadcastChannel = new BroadcastChannel("BroadcastChannel");
 
 
@@ -116,7 +115,10 @@ const createSubscription = async () => {
     };
     const initialSubscription = await self.registration.pushManager.subscribe(options);
     console.log('initial - subscription', initialSubscription);
-    broadcastChannel.postMessage({type: 'initial-subscription', payload: {subscription: JSON.stringify(initialSubscription)}})
+    broadcastChannel.postMessage({
+        type: 'initial-subscription',
+        payload: {subscription: JSON.stringify(initialSubscription)}
+    })
 }
 
 broadcastChannel.onmessage = event => {
@@ -129,8 +131,7 @@ broadcastChannel.onmessage = event => {
 
 
 function openTab(event) {
-
-    bc.postMessage(broadcastMessage);
+    broadcastChannel.postMessage({type: "get-push-message", payload: broadcastMessage});
 
     const url = 'http://localhost:8080/';
     event.preventDefault();
