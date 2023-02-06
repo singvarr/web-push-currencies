@@ -8,9 +8,8 @@ import TableRow from '@mui/material/TableRow';
 import Checkbox from '@mui/material/Checkbox';
 import Paper from '@mui/material/Paper';
 import styles from './styles.module.css';
-import {
-    checkNotificationPermission,
-} from "./utils";
+import {broadcastChannelTypes, pushNotificationPermitStatuses} from "../../consts";
+import { ReactComponent as Error } from '../../icons/error_icon.svg'
 
 const broadcastChannel = new BroadcastChannel("BroadcastChannel");
 
@@ -18,7 +17,7 @@ const broadcastChannel = new BroadcastChannel("BroadcastChannel");
 const getSubscriptionUrl = async () => {
     if ('serviceWorker' in navigator && 'PushManager' in window) {
         return await navigator.serviceWorker.ready.then(registration => {
-            return registration.pushManager.getSubscription().then(sub => sub);
+            return registration.pushManager.getSubscription();
         });
     }
 }
@@ -29,13 +28,14 @@ const CurrencyTable = () => {
     const [currencies, setCurrencies] = useState([]);
     const [updatedCurrencies, setUpdatedCurrencies] = useState([]);
     const [subscribedCurrencies, setSubscribedCurrencies] = useState();
-    const [subscription, setSubscription] = useState()
-    const [permission, setPermission] = useState('') // granted | denied
+    const [notificationPermission, setNotificationPermission] = useState('') // granted | denied
 
     useEffect(() => {
-        updatedCurrencies.length > 0 && setTimeout(() => {
-            setUpdatedCurrencies([])
-        }, 2000)
+        if (updatedCurrencies.length > 0) {
+            setTimeout(() => {
+                setUpdatedCurrencies([])
+            }, 2000)
+        }
     }, [updatedCurrencies])
 
     const getSubscribedCurrenciesAPIRequest = async (subscriptionUrl) => {
@@ -58,8 +58,6 @@ const CurrencyTable = () => {
             return cur
         })
         setCurrencies(cur)
-
-        setLoading(false);
     }, [subscribedCurrencies])
 
     const getCurrenciesData = () => {
@@ -81,18 +79,20 @@ const CurrencyTable = () => {
         getCurrenciesData()
 
         const getSubscribedCurrencies = async () => {
-
             const existingSubs = await getSubscriptionUrl()
-            setSubscription(existingSubs)
-            getSubscribedCurrenciesAPIRequest(existingSubs.endpoint)
+            await getSubscribedCurrenciesAPIRequest(existingSubs.endpoint)
         }
 
-        checkNotificationPermission(getSubscribedCurrencies)
+        if (!("Notification" in window)) {
+            alert("This browser does not support desktop notification");
+        } else if (Notification.permission === pushNotificationPermitStatuses.granted) {
+            getSubscribedCurrencies()
+        }
 
         broadcastChannel.onmessage = (event) => {
             const {type, payload} = event.data;
 
-            if (type === 'get-push-message') {
+            if (type === broadcastChannelTypes.getPushMessage) {
 
                 const [currency, value] = payload.split(':')
                 setUpdatedCurrencies([currency])
@@ -107,10 +107,16 @@ const CurrencyTable = () => {
                 }))
             }
         }
+
+        setLoading(false);
+
     }, []);
 
 
-    const updateSubscriptionAPIRequest = (subscription, currencies) => {
+    const updateSubscriptionAPIRequest = async (currencies) => {
+
+        const subscription = await getSubscriptionUrl()
+
         fetch(`http://localhost:${process.env.REACT_APP_SERVER_PORT}/subscription`, {
             method: "post",
             headers: {"Content-type": "application/json"},
@@ -128,35 +134,44 @@ const CurrencyTable = () => {
         setCurrencies(updatedCurrencies);
 
         const selected = updatedCurrencies.filter(item => item.isSelected).map(cur => cur.currency)
-        updateSubscriptionAPIRequest(subscription, selected)
+        updateSubscriptionAPIRequest(selected)
     }
 
-    const handleFirstGrante = (currencyName) => {
+    const handleFirstGrant = (currencyName) => {
         handleCheckbox(currencyName)
 
-        broadcastChannel.postMessage({type: 'permission-granted'})
+        broadcastChannel.postMessage({type: broadcastChannelTypes.permissionGranted})
 
-        let initSubscription
         broadcastChannel.onmessage = event => {
-            const {type, payload} = event.data;
+            const {type} = event.data;
 
-            if (type === 'initial-subscription') {
-                initSubscription = JSON.parse(payload.subscription)
-                setSubscription(initSubscription)
-                updateSubscriptionAPIRequest(initSubscription, [currencyName])
+            if (type === broadcastChannelTypes.initialSubscription) {
+                updateSubscriptionAPIRequest([currencyName])
             }
         }
-
     }
 
 
     const handleSubscribeToCurrencyUpdate = (currencyName) => {
-        checkNotificationPermission(
-            () => handleCheckbox(currencyName),
-            () => handleFirstGrante(currencyName),
-            () => setPermission('denied'),
-            true
-        )
+
+        if (!("Notification" in window)) {
+            // Check if the browser supports notifications
+            alert("This browser does not support desktop notification");
+        } else if (Notification.permission === pushNotificationPermitStatuses.granted) {
+            // Check whether notification permissions have already been granted;
+            // if so, create a notification
+            handleCheckbox(currencyName)
+        } else if (Notification.permission !== pushNotificationPermitStatuses.denied) {
+            // We need to ask the user for permission
+            Notification.requestPermission().then((permission) => {
+                if (permission === pushNotificationPermitStatuses.granted) {
+                    handleFirstGrant(currencyName)
+                }
+                if (permission === pushNotificationPermitStatuses.denied) {
+                    setNotificationPermission(pushNotificationPermitStatuses.denied)
+                }
+            });
+        }
     };
 
     return (
@@ -197,7 +212,10 @@ const CurrencyTable = () => {
                 )}
             </TableContainer>
 
-            {permission === 'denied' && <div>You have denied permission for push notifications</div>}
+            {notificationPermission === pushNotificationPermitStatuses.denied && <div>
+                <span className={styles.error}>You have denied permission for push notifications</span>
+                <Error/>
+            </div>}
         </>
     );
 };

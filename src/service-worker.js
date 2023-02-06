@@ -12,6 +12,7 @@ import { ExpirationPlugin } from 'workbox-expiration';
 import { precacheAndRoute, createHandlerBoundToURL } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
 import { StaleWhileRevalidate } from 'workbox-strategies';
+import { broadcastChannelTypes } from "./consts";
 
 clientsClaim();
 
@@ -72,7 +73,7 @@ self.addEventListener('message', (event) => {
 const broadcastChannel = new BroadcastChannel("BroadcastChannel");
 
 
-function showLocalNotification(title, body, swRegistration, tag) {
+function showLocalNotification(title, body, tag) {
     const options = {
         body,
         icon: '../images/icon.png',
@@ -81,7 +82,7 @@ function showLocalNotification(title, body, swRegistration, tag) {
         ],
         tag
     }
-    swRegistration.showNotification(title, options)
+    self.registration.showNotification(title, options)
 }
 
 let broadcastMessage
@@ -99,12 +100,7 @@ self.addEventListener('push', function (event) {
     broadcastMessage = event.data.text()
 
     const [tag] = broadcastMessage.split(':')
-    showLocalNotification('Exchange updates', broadcastMessage, self.registration, tag)
-})
-
-
-self.addEventListener('activate', async (e) => {
-    console.log('service worker activate')
+    showLocalNotification('Exchange updates', broadcastMessage, tag)
 })
 
 const createSubscription = async () => {
@@ -113,25 +109,25 @@ const createSubscription = async () => {
         applicationServerKey: process.env.REACT_APP_WEB_PUSH_PUBLIC_KEY,
         userVisibleOnly: true
     };
-    const initialSubscription = await self.registration.pushManager.subscribe(options);
-    console.log('initial - subscription', initialSubscription);
+
+    await self.registration.pushManager.subscribe(options);
+
     broadcastChannel.postMessage({
-        type: 'initial-subscription',
-        payload: {subscription: JSON.stringify(initialSubscription)}
+        type: broadcastChannelTypes.initialSubscription,
     })
 }
 
 broadcastChannel.onmessage = event => {
     const {type} = event.data;
-    console.log('permission-granted');
-    if (type === 'permission-granted') {
+
+    if (type === broadcastChannelTypes.permissionGranted) {
         createSubscription()
     }
 }
 
 
 function openTab(event) {
-    broadcastChannel.postMessage({type: "get-push-message", payload: broadcastMessage});
+    broadcastChannel.postMessage({type: broadcastChannelTypes.getPushMessage, payload: broadcastMessage});
 
     const url = 'http://localhost:8080/';
     event.preventDefault();

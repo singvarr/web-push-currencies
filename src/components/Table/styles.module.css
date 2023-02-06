@@ -32,3 +32,8 @@
 .highlightRow{
     background-color: rgba(84, 103, 250, 0.44) !important;
 }
+
+.error {
+    color: #DB0042;
+    font-weight: 600;
+}
