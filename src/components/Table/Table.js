@@ -9,7 +9,7 @@ import Checkbox from '@mui/material/Checkbox';
 import Paper from '@mui/material/Paper';
 import styles from './styles.module.css';
 import {broadcastChannelTypes, pushNotificationPermitStatuses} from "../../consts";
-import { ReactComponent as Error } from '../../icons/error_icon.svg'
+import {ReactComponent as Error} from '../../icons/error_icon.svg'
 
 const broadcastChannel = new BroadcastChannel("BroadcastChannel");
 
@@ -20,6 +20,7 @@ const getSubscriptionUrl = async () => {
             return registration.pushManager.getSubscription();
         });
     }
+    return null
 }
 
 
@@ -89,6 +90,11 @@ const CurrencyTable = () => {
             getSubscribedCurrencies()
         }
 
+        setLoading(false);
+
+    }, []);
+
+    useEffect(() => {
         broadcastChannel.onmessage = (event) => {
             const {type, payload} = event.data;
 
@@ -106,12 +112,12 @@ const CurrencyTable = () => {
                     return item
                 }))
             }
+
+            if (type === broadcastChannelTypes.initialSubscription) {
+                updateSubscriptionAPIRequest(currencies.map(currency => currency.currency))
+            }
         }
-
-        setLoading(false);
-
-    }, []);
-
+    }, [currencies])
 
     const updateSubscriptionAPIRequest = async (currencies) => {
 
@@ -141,16 +147,7 @@ const CurrencyTable = () => {
         handleCheckbox(currencyName)
 
         broadcastChannel.postMessage({type: broadcastChannelTypes.permissionGranted})
-
-        broadcastChannel.onmessage = event => {
-            const {type} = event.data;
-
-            if (type === broadcastChannelTypes.initialSubscription) {
-                updateSubscriptionAPIRequest([currencyName])
-            }
-        }
     }
-
 
     const handleSubscribeToCurrencyUpdate = (currencyName) => {
 
