@@ -3,7 +3,7 @@
 ## Workflow:
 
 [The app flow - Miro board](https://miro.com/welcomeonboard/Y0NNS3I3UmN0cDRxVGo0clBNR3NXNTJvYVVmekpUSkluNXY5RGFFNjJwZGZGZ1BjQkhOOVZES3BtTlJhRHR1anwzNDU4NzY0NTI2NjQxMTIzNzIwfDI=?share_link_id=609544899592)
-![Push notification workflow](https://user-images.githubusercontent.com/56842420/219965309-c865c927-81fb-4404-b7ff-c940fe6197b4.jpg)
+![Push notification workflow](https://user-images.githubusercontent.com/56842420/219975434-c0033716-53af-43e7-bdc4-802f5aff2c1a.jpg)
 
 
 ## Web API for push notifications
