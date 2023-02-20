@@ -12,7 +12,7 @@ import { ExpirationPlugin } from 'workbox-expiration';
 import { precacheAndRoute, createHandlerBoundToURL } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
 import { StaleWhileRevalidate } from 'workbox-strategies';
-import { broadcastChannelTypes } from "./consts";
+import {broadcastChannelTypes, pushNotificationAction} from "./consts";
 
 clientsClaim();
 
@@ -71,38 +71,9 @@ self.addEventListener('message', (event) => {
 });
 
 const broadcastChannel = new BroadcastChannel("BroadcastChannel");
-
-
-function showLocalNotification(title, body, tag) {
-    const options = {
-        body,
-        icon: '../images/icon.png',
-        actions: [
-            {action: 'view', title: 'View'}
-        ],
-        tag
-    }
-    self.registration.showNotification(title, options)
-}
-
 let broadcastMessage
 
-self.addEventListener('notificationclick', function (event) {
-    event.notification.close();
-
-    if (event.action === 'view') {
-        openTab(event);
-    }
-
-}, false);
-
-self.addEventListener('push', function (event) {
-    broadcastMessage = event.data.text()
-
-    const [tag] = broadcastMessage.split(':')
-    showLocalNotification('Exchange updates', broadcastMessage, tag)
-})
-
+// Creating subscription once Push notification permissions is granted
 const createSubscription = async () => {
 
     const options = {
@@ -125,7 +96,29 @@ broadcastChannel.onmessage = event => {
     }
 }
 
+// Notification view setting with the title, body (updated currency), image, tag
+function showLocalNotification(title, body, tag) {
+    const options = {
+        body,
+        icon: '../images/icon.png',
+        actions: [
+            {action: pushNotificationAction, title: 'View'}
+        ],
+        tag
+    }
+    self.registration.showNotification(title, options)
+}
 
+// listener for the getting push data from the Push Manager
+self.addEventListener('push', function (event) {
+    broadcastMessage = event.data.text()
+
+    const [tag] = broadcastMessage.split(':')
+    showLocalNotification('Exchange updates', broadcastMessage, tag)
+})
+
+
+// handler to open App if user click on the "View" button in the push notification message
 function openTab(event) {
     broadcastChannel.postMessage({type: broadcastChannelTypes.getPushMessage, payload: broadcastMessage});
 
@@ -149,3 +142,14 @@ function openTab(event) {
         })
     );
 }
+
+// listener for the button click in the Push notification message
+self.addEventListener('notificationclick', function (event) {
+    event.notification.close();
+
+    if (event.action === pushNotificationAction) {
+        openTab(event);
+    }
+}, false);
+
+

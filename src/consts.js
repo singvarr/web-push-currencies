@@ -10,3 +10,5 @@ export const broadcastChannelTypes = {
     initialSubscription: 'initial-subscription',
     getPushMessage: 'get-push-message'
 }
+
+export const pushNotificationAction  = 'view'
