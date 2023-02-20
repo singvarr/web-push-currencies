@@ -2,7 +2,9 @@
 
 ## Workflow:
 
-![workflow](https://user-images.githubusercontent.com/56842420/194937213-b29909d2-e73b-447a-b3d4-f4f00e8011b5.png)
+[The app flow - Miro board](https://miro.com/welcomeonboard/Y0NNS3I3UmN0cDRxVGo0clBNR3NXNTJvYVVmekpUSkluNXY5RGFFNjJwZGZGZ1BjQkhOOVZES3BtTlJhRHR1anwzNDU4NzY0NTI2NjQxMTIzNzIwfDI=?share_link_id=609544899592)
+![Push notification workflow](https://user-images.githubusercontent.com/56842420/219975434-c0033716-53af-43e7-bdc4-802f5aff2c1a.jpg)
+
 
 ## Web API for push notifications
 
@@ -32,3 +34,7 @@ Value of permission can be `granted`, `default`, `denied`. `default` status is a
 ## About project
 
 - There is no need to save the subscription on the server side if we have a general subscription. In our case we wan to manage the subscriptions so we need to save subscriptions on the server side.
+
+  [The app flow - Miro board](https://miro.com/welcomeonboard/V2dTNkhaWUhCekZGSWNOOFVrYWo5b1VJeng0SzNIS0xpVFRPbTJHdElVM2hJWktTYVd2UGJ0N256QkRNUmVyYnwzNDU4NzY0NTI2NjQxMTIzNzIwfDI=?share_link_id=197611904681)
+![App workflow](https://user-images.githubusercontent.com/56842420/219964670-2bb09d2c-15fd-4d18-9376-3c8f57dc494e.jpg)
+
