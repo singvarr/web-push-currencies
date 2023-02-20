@@ -12,6 +12,7 @@ import { ExpirationPlugin } from 'workbox-expiration';
 import { precacheAndRoute, createHandlerBoundToURL } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
 import { StaleWhileRevalidate } from 'workbox-strategies';
+import {broadcastChannelTypes, pushNotificationAction} from "./consts";
 
 clientsClaim();
 
@@ -69,61 +70,57 @@ self.addEventListener('message', (event) => {
   }
 });
 
+const broadcastChannel = new BroadcastChannel("BroadcastChannel");
+let broadcastMessage
 
-self.addEventListener("activate", async () => {
-    console.log('service worker activate')
-    // This will be called only once when the service worker is activated.
+// Creating subscription once Push notification permissions is granted
+const createSubscription = async () => {
+
     const options = {
         applicationServerKey: process.env.REACT_APP_WEB_PUSH_PUBLIC_KEY,
         userVisibleOnly: true
     };
-    const subscription = await self.registration.pushManager.subscribe(options);
-    console.log('subscription activated')
 
-    fetch(`http://localhost:${process.env.REACT_APP_SERVER_PORT}/subscription`, {
-        method: "post",
-        headers: { "Content-type": "application/json" },
-        body: JSON.stringify({ subscription })
+    await self.registration.pushManager.subscribe(options);
 
-    }).catch(error => {
-        console.log("Error", error);
+    broadcastChannel.postMessage({
+        type: broadcastChannelTypes.initialSubscription,
     })
-});
+}
 
-function showLocalNotification(title, body, swRegistration) {
+broadcastChannel.onmessage = event => {
+    const {type} = event.data;
+
+    if (type === broadcastChannelTypes.permissionGranted) {
+        createSubscription()
+    }
+}
+
+// Notification view setting with the title, body (updated currency), image, tag
+function showLocalNotification(title, body, tag) {
     const options = {
         body,
         icon: '../images/icon.png',
         actions: [
-            {action: 'view', title: 'View'}
+            {action: pushNotificationAction, title: 'View'}
         ],
-        tag: 'swc'
-        // add more     properties like icon, image, vibrate, etc.
+        tag
     }
-    swRegistration.showNotification(title, options)
+    self.registration.showNotification(title, options)
 }
 
-let broadcastMessage
-
-self.addEventListener('notificationclick', function (event) {
-    event.notification.close();
-
-    if (event.action === 'view') {
-        openTab(event);
-    }
-
-}, false);
-
+// listener for the getting push data from the Push Manager
 self.addEventListener('push', function (event) {
     broadcastMessage = event.data.text()
-    showLocalNotification('Exchange updates', broadcastMessage, self.registration)
+
+    const [tag] = broadcastMessage.split(':')
+    showLocalNotification('Exchange updates', broadcastMessage, tag)
 })
 
-const bc = new BroadcastChannel("sw-channel");
 
+// handler to open App if user click on the "View" button in the push notification message
 function openTab(event) {
-
-    bc.postMessage(broadcastMessage);
+    broadcastChannel.postMessage({type: broadcastChannelTypes.getPushMessage, payload: broadcastMessage});
 
     const url = 'http://localhost:8080/';
     event.preventDefault();
@@ -145,3 +142,14 @@ function openTab(event) {
         })
     );
 }
+
+// listener for the button click in the Push notification message
+self.addEventListener('notificationclick', function (event) {
+    event.notification.close();
+
+    if (event.action === pushNotificationAction) {
+        openTab(event);
+    }
+}, false);
+
+
