@@ -68,6 +68,8 @@ const CurrencyTable = () => {
 
         const subscription = await getSubscriptionUrl()
 
+        if(!subscription) return;
+
         fetch(`http://localhost:${process.env.REACT_APP_SERVER_PORT}/subscription`, {
             method: "post",
             headers: {"Content-type": "application/json"},
@@ -189,7 +191,7 @@ const CurrencyTable = () => {
             }
 
             if (type === broadcastChannelTypes.initialSubscription) {
-                updateSubscriptionAPIRequest(currencies.map(currency => currency.currency))
+                updateSubscriptionAPIRequest(currencies.filter(item => item.isSelected).map(cur => cur.currency))
             }
         }
     }, [currencies])
